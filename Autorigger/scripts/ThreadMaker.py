@@ -16,10 +16,14 @@ def makeWindow():
     # Check if the window is already open
     if cmds.window(winName, query=True, exists=True):
         cmds.deleteUI(winName)
+    # If it was closed, reset its prefs so it appears on default location
+    elif cmds.windowPref(winName, exists=True):
+        cmds.windowPref(winName, remove=True)
     
     # If it doesn't exist, make it    
-    cmds.window(winName, t="Thread Maker")
-    cmds.window(winName, e=True, w=500)
+    cmds.window(winName, title="Thread Maker and Rigger")
+    cmds.window(winName, edit=True, width=500)
+    cmds.window(winName, edit=True, topLeftCorner=[0,0])
     
     populateWindow()
 

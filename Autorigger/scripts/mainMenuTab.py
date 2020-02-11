@@ -1,39 +1,39 @@
 from maya import cmds
-import autoriggingWindow
-import ThreadMaker
-import wheelRigger
+import logging
 
-from autoriggingWindow import makeWindow as autoRigWindow
-from ThreadMaker import makeWindow as threadWindow
-from wheelRigger import makeWindow as wheelWindow
+# Creating a logger for debug
+logger = logging.getLogger("MenuTab")
+logger.setLevel(logging.DEBUG)  # Allows us to see debug messages, change to INFO to hide
+
+def makeAutoriggingWindow(*args):
+    import autoriggingWindow
+    if logger.level == logging.DEBUG:
+        reload(autoriggingWindow)
+
+    autoriggingWindow.makeWindow()
+
+def makeWheelWindow(*args):
+    import wheelRigger
+    if logger.level == logging.DEBUG:
+        reload(wheelRigger)
+
+    wheelRigger.makeWindow()
+
+def makeThreadWindow(*args):
+    import ThreadMaker
+    if logger.level == logging.DEBUG:
+        reload(ThreadMaker)
+
+    ThreadMaker.makeWindow()
 
 def createTab():
     cmds.menu( label='Heavy Duty Vehicle', tearOff=True, parent="MayaWindow" )
-    cmds.menuItem( divider=True, dividerLabel='Full veehicle Rig' )
-    cmds.menuItem( label='Vehicle Rigger', command="autoRigWindow()")
+
+    cmds.menuItem( divider=True, dividerLabel='Full vehicle Rig' )
+    cmds.menuItem( label='Vehicle Rigger', command=lambda x: makeAutoriggingWindow() )
+
     cmds.menuItem( divider=True, dividerLabel='Bottom Rigging' )
-    cmds.menuItem( label="Wheel Rigger", command="wheelWindow()")
-    cmds.menuItem( label="Thread Maker", command="threadWindow()")
-
-
-    '''
-    cmds.menuItem( subMenu=True, label='Colors' )
-    cmds.menuItem( label='Blue' )
-    cmds.menuItem( label='Green' )
-    cmds.menuItem( label='Yellow' )
-    cmds.setParent( '..', menu=True )
-    cmds.menuItem( divider=True, dividerLabel='Section 1' )
-    cmds.radioMenuItemCollection()
-    cmds.menuItem( label='Yes', radioButton=False )
-    cmds.menuItem( label='Maybe', radioButton=False )
-    cmds.menuItem( label='No', radioButton=True )
-    cmds.menuItem( divider=True, dividerLabel='Section 2' )
-    cmds.menuItem( label='Top', checkBox=True )
-    cmds.menuItem( label='Middle', checkBox=False )
-    cmds.menuItem( label='Bottom', checkBox=True )
-    cmds.menuItem( divider=True )
-    cmds.menuItem( label='Option' )
-    cmds.menuItem( optionBox=True )
-    '''
+    cmds.menuItem( label="Wheel Rigger", command=lambda x: makeWheelWindow() )
+    cmds.menuItem( label="Thread Maker", command=lambda x: makeThreadWindow() )
 
 if __name__ == '__main__': createTab()
