@@ -21,8 +21,13 @@ def makeWindow():
     cmds.window(winName, t="Thread Maker")
     cmds.window(winName, e=True, w=500)
     
+    populateWindow()
+
+    cmds.showWindow()
+
+def populateWindow():
     # Main layout for UI
-    cmds.columnLayout()
+    mainLayout = cmds.columnLayout()
      
     '''
     ----------------------------------- Locator Creation -----------------------------------------
@@ -96,7 +101,9 @@ def makeWindow():
     cmds.button(l="Finalize", c="finalizeThread()")
     
     cmds.setParent('..')
-    cmds.showWindow()
+    cmds.setParent('..')
+
+    return mainLayout
 
 # This function creates the locators
 def initFunc():
@@ -299,11 +306,11 @@ def pickingObj():
     ----------------------------------- First Dialog and Window Creation -----------------------------------------
 '''
 
-confirm = cmds.confirmDialog(t="Checking", m="Before proceeding, is your model placed on Z direction?", 
-                            b=["Yes", "No"], db="Yes", cb="No", ds="No")
-                            
-if confirm == "No":
-    cmds.confirmDialog(t="Fix object", m="You MUST place the object at the origin and along the Z axis")
-else:
-    makeWindow()
-    
+if __name__ == "__main__": 
+    confirm = cmds.confirmDialog(t="Checking", m="Before proceeding, is your model placed on Z direction?", 
+                                b=["Yes", "No"], db="Yes", cb="No", ds="No")
+                                
+    if confirm == "No":
+        cmds.confirmDialog(t="Fix object", m="You MUST place the object at the origin and along the Z axis")
+    else:
+        makeWindow()
