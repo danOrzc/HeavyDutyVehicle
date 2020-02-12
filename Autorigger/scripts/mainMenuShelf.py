@@ -27,6 +27,13 @@ def makeThreadWindow(*args):
 
     ThreadMaker.makeWindow()
 
+def makeArmWindow(*args):
+    import ArmMaker
+    if logger.level == logging.DEBUG:
+        reload(ArmMaker)
+
+    ArmMaker.makeWindow()
+
 def createShelf():
     shelfName='HD_Vehicle'
     mel.eval('global string $gShelfTopLevel;')
@@ -54,6 +61,11 @@ def createShelf():
     cmds.shelfButton(annotation='Create Thread mesh and rig',
         image='mayaIcon.png',
         command=makeThreadWindow,
+        parent=createdShelf 
+        )
+    cmds.shelfButton(annotation='Create Thread mesh and rig',
+        image='mayaIcon.png',
+        command=makeArmWindow,
         parent=createdShelf 
         ) 
         

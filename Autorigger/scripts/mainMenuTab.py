@@ -26,6 +26,13 @@ def makeThreadWindow(*args):
 
     ThreadMaker.makeWindow()
 
+def makeArmWindow(*args):
+    import ArmMaker
+    if logger.level == logging.DEBUG:
+        reload(ArmMaker)
+
+    ArmMaker.makeWindow()
+
 def createTab():
     cmds.menu( label='Heavy Duty Vehicle', tearOff=True, parent="MayaWindow" )
 
@@ -35,5 +42,8 @@ def createTab():
     cmds.menuItem( divider=True, dividerLabel='Bottom Rigging' )
     cmds.menuItem( label="Wheel Rigger", command=lambda x: makeWheelWindow() )
     cmds.menuItem( label="Thread Maker", command=lambda x: makeThreadWindow() )
+
+    cmds.menuItem( divider=True, dividerLabel='Arm Rigging' )
+    cmds.menuItem( label='Arm Rigger', command=lambda x: makeArmWindow() )
 
 if __name__ == '__main__': createTab()

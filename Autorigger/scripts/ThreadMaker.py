@@ -41,7 +41,7 @@ def populateWindow():
     cmds.text(label="This is the very first step on the process")
     cmds.gridLayout(numberOfColumns=1, cellWidth=500)
     
-    cmds.button(label="Initialize", command="initFunc()")
+    cmds.button(label="Initialize", command=initFunc)
     
     cmds.setParent('..')
     cmds.separator(h=5)
@@ -110,12 +110,11 @@ def populateWindow():
     return mainLayout
 
 # This function creates the locators
-def initFunc():
+def initFunc(*args):
     cmds.spaceLocator(name="CircleLocator001")
     cmds.scale(4,4,4)
     cmds.spaceLocator(name="CircleLocator002")
     cmds.scale(4,4,4)
-    cmds.confirmDialog(message="Now place the locators on the two end of the wheels")
 
 # This function creates a default proxy geo if the user does not provides one   
 def makeProxyGeo():

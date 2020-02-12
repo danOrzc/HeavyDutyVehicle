@@ -6,6 +6,9 @@ reload(TM)
 import wheelRigger as WM
 reload(WM)
 
+import ArmMaker as AM
+reload(AM)
+
 def makeWindow():
     windowName="AutoRigger"
     
@@ -26,13 +29,13 @@ def populateWindow():
     cmds.formLayout( form, edit=True, attachForm=((tabs, 'top', 0), (tabs, 'left', 0), (tabs, 'bottom', 0), (tabs, 'right', 0)) )
     
     # Child tab for bottom rigging tool
-    child1 = cmds.rowColumnLayout(numberOfColumns=2)
+    child1 = cmds.columnLayout()
     populateBottomTab()
     cmds.setParent( '..' )
     
     # Child tab for Arm rigging tool
     child2 = cmds.rowColumnLayout(numberOfColumns=2)
-    populateThreadTab()
+    populateArmTab()
     cmds.setParent( '..' )
     
     # Child tab for Pistons rigging tool3
@@ -54,17 +57,17 @@ def populateBottomTab():
     cmds.radioButton(label="Wheels", changeCommand=lambda value: changeWheelLayout(value))
     
     def changeThreadLayout(value):
-        cmds.columnLayout(threadLayout, edit=True, enable=value)
+        cmds.columnLayout(threadLayout, edit=True, visible=value)
         
     def changeWheelLayout(value):
-        cmds.columnLayout(wheelLayout, edit=True, enable=value)
+        cmds.columnLayout(wheelLayout, edit=True, visible=value)
         
     threadLayout = TM.populateWindow()
     wheelLayout = WM.populateWindow()
     changeWheelLayout(False)
     
-def populateThreadTab():
-    pass
+def populateArmTab():
+    armLayout = AM.populateWindow()
 
 # Chech if we are running this script from this same module
 if __name__ == "__main__": makeWindow()
