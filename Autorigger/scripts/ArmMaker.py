@@ -37,6 +37,10 @@ def populateWindow():
 
     start.resetBttn = cmds.button(l="Reset locators", c=delLoc, enable=False)
     start.createJntsBttn = cmds.button(l="Place joints", c=makeJnt, enable=False)
+
+    cmds.text(label="Select the mesh pieces from the body to the bucket")
+    cmds.button(label="Assign Geometry", command=assignGeometry)
+
     cmds.setParent( '..' )
     return mainLayout
 
@@ -77,7 +81,7 @@ def delLoc(*args):
     # Empty the lists so we don't keep their references
     del start.locList[:]
     del start.locPosList[:]
-    del start.jointList[:]
+    #del start.jointList[:]
 
     # Modifies the UI so the buttons get enabled or disabled
     updateUI(False)
@@ -146,5 +150,14 @@ def makeIK(*args):
         cmds.parent()
 
     delLoc()
+
+def assignGeometry(*args):
+    pieces = cmds.ls(selection=True, transforms=True)
+
+    for i,p in enumerate(pieces):
+        cmds.select(start.jointList[i], p)
+        cmds.parentConstraint(maintainOffset=True)
+    
+
 
 if __name__ == "__main__": makeWindow()

@@ -9,6 +9,9 @@ reload(WM)
 import ArmMaker as AM
 reload(AM)
 
+import finalizeRig as FR
+reload(FR)
+
 def makeWindow():
     windowName="AutoRigger"
     
@@ -16,7 +19,7 @@ def makeWindow():
         cmds.deleteUI(windowName)
         
     cmds.window(windowName, title="Auto rigger tool for Heavy Duty Vehicle")
-    
+
     populateWindow()
     
     cmds.showWindow(windowName)
@@ -39,11 +42,12 @@ def populateWindow():
     cmds.setParent( '..' )
     
     # Child tab for Pistons rigging tool3
-    child3 = cmds.rowColumnLayout(numberOfColumns=2)
+    child3 = cmds.rowColumnLayout(numberOfColumns=2, visible=False)
     cmds.setParent( '..' )
     
     # Child tab for Finalizing
     child4 = cmds.rowColumnLayout(numberOfColumns=2)
+    populateFinalize()
     cmds.setParent( '..' )
     
     # Modify tab layout to add labels to each individual tab
@@ -68,6 +72,9 @@ def populateBottomTab():
     
 def populateArmTab():
     armLayout = AM.populateWindow()
+
+def populateFinalize():
+    finalizeLayout = FR.populateWindow()
 
 # Chech if we are running this script from this same module
 if __name__ == "__main__": makeWindow()

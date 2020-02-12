@@ -18,17 +18,17 @@ def populateWindow():
 
     makeWindow.RotSpeed = cmds.floatSliderGrp(field=True, value=1)
     
-    cmds.button(label="Wheel Controls", command="wheelSelection()", 
+    cmds.button(label="Wheel Controls", command=wheelSelection, 
                 statusBarMessage="Select all the wheels in one set. Then click the button", 
                 annotation="Apply controls to selected wheel set")
 
-    cmds.button(label="Finalize", command="finale()")
+    #cmds.button(label="Finalize", command=finale)
 
     cmds.setParent("..")
 
     return mainLayout
 
-def wheelSelection():
+def wheelSelection(*args):
     print("Wheel Selection called")
 
     # Get the list of selected objects
@@ -60,7 +60,7 @@ def wheelSelection():
 
     renamingAssets()
 
-def finale():
+def finale(*args):
     cmds.circle(name="MainCT", radius=10, normal=(0,1,0))
 
     cmds.select("WheelCTSet*")

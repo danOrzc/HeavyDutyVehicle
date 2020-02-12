@@ -55,7 +55,7 @@ def populateWindow():
     cmds.text(label="This is the second step on the process")
     cmds.gridLayout(numberOfColumns=1, cellWidth=500)
     cmds.intSliderGrp("curveQuality", l="Curve quality", f=True, v=6, minValue=6, maxValue=20)
-    cmds.button(label="Make Curve", c="makeThread()")
+    cmds.button(label="Make Curve", c=makeThread)
     
     cmds.setParent('..')
     cmds.separator(h=5)
@@ -95,14 +95,15 @@ def populateWindow():
     # Layout for creation methods
     cmds.gridLayout("threadGridLO", numberOfColumns=1, cellWidth=500)
     cmds.checkBox("useProxy", label="Create Proxy Geo", cc= lambda value: cmds.textFieldButtonGrp("threadName",e=True, en=not value))
-    cmds.textFieldButtonGrp("threadName", buttonLabel="Pick Selected", bc="pickingObj()", placeholderText="Selected Mesh")
+    cmds.textFieldButtonGrp("threadName", buttonLabel="Pick Selected", bc=pickingObj, placeholderText="Selected Mesh")
     cmds.checkBox("bboxCheck", label="Use piece's bounding box", cc= lambda value: cmds.intSliderGrp("threadAmount",e=True, en=not value))
-    cmds.intSliderGrp("threadAmount", l="Amount of threads", f=True, v=20, minValue=1, maxValue=500, cc="RemakeThread()")
-    cmds.button(label="Make Thread", c="makeTreadObj()")
+    cmds.intSliderGrp("threadAmount", l="Amount of threads", f=True, v=20, minValue=1, maxValue=500, cc=RemakeThread)
+    cmds.button(label="Make Thread", c=makeTreadObj)
     
     cmds.setParent('..')
     cmds.separator(h=5)
-    cmds.button(l="Finalize", c="finalizeThread()")
+    cmds.text(label="Finalize before modifying the curve points")
+    cmds.button(l="Finalize", c=finalizeThread)
     
     cmds.setParent('..')
     cmds.setParent('..')
@@ -142,7 +143,7 @@ def renamePreMade():
     userObj = cmds.rename("ThreadMesh")
 
 # This function creates the circle that represent the thread   
-def makeThread():
+def makeThread(*args):
     cmds.select("CircleLocator001")
     loc1Pos = cmds.getAttr(".translateZ")
     cmds.select("CircleLocator002")
@@ -170,7 +171,7 @@ def makeThread():
     cmds.select("ThreadCurve")
     
 # This function makes a thread out of the selected object
-def makeTreadObj():
+def makeTreadObj(*args):
     usePreMade = cmds.radioButton("premadeGeo", query=True, select=True)
     
     if usePreMade:
@@ -240,13 +241,13 @@ def makeTreadObj():
     # Hide original geo
     cmds.setAttr("%s.visibility"%userObj, False)
 
-def RemakeThread():
+def RemakeThread(*args):
     if cmds.objExists("ThreadMesh"):
         cmds.select("ThreadMesh",r=True)
         cmds.delete()
         makeTreadObj()
 
-def finalizeThread():    
+def finalizeThread(*args):    
     # Here we make wire deformer
     def makeWire(geo, CCurve, dropOffD=10):
         theWire = cmds.wire(geo, w=CCurve, n ="inputWire")
@@ -297,10 +298,11 @@ def createCubeController():
         cmds.select(cubeCtrl, clusterName)
         cmds.parentConstraint(mo=True, w=1)
         
-    cmds.select("clusterCtrl")
+    cmds.select("clusterCtrl*")
+    cmds.group(name="ClusterControlGroup")
 
 
-def pickingObj():
+def pickingObj(*args):
     selectedObj=cmds.ls(selection=True, objectsOnly=True)[0]
     cmds.textFieldButtonGrp("threadName", edit=True, text=selectedObj)
     
