@@ -34,39 +34,51 @@ def makeArmWindow(*args):
 
     ArmMaker.makeWindow()
 
-def createShelf():
-    shelfName='HD_Vehicle'
-    mel.eval('global string $gShelfTopLevel;')
-    mainShelfLayout=mel.eval('$tmp=$gShelfTopLevel;')
+def emptyShelf(shelf):
+    buttonList = cmds.shelfLayout(shelf, query=True, childArray=True)
+    
+    if buttonList:
+        for i in xrange(len(buttonList)):
+            cmds.deleteUI(buttonList[i])
 
-    if cmds.shelfLayout(shelfName,exists=True):
-        #mel.eval('deleteShelfTab "%s";'%shelfName))
-        return
+        del buttonList[:]
 
-    #add new tab
-    createdShelf=mel.eval('addNewShelfTab "%s";'%shelfName)
+def populateShelf(shelf):
+    cmds.setParent(shelf)
 
     cmds.shelfButton(annotation='Create Full Vehicle',
         image='mayaIcon.png',
         command=makeAutoriggingWindow,
-        parent=createdShelf 
+        parent=shelf 
         )
     cmds.shelfButton(annotation='Create Wheel Rig',
         image='mayaIcon.png', 
         command=makeWheelWindow,
         style='iconAndTextVertical',
         sic=True,
-        parent=createdShelf 
+        parent=shelf 
         )
     cmds.shelfButton(annotation='Create Thread mesh and rig',
         image='mayaIcon.png',
         command=makeThreadWindow,
-        parent=createdShelf 
+        parent=shelf 
         )
-    cmds.shelfButton(annotation='Create Thread mesh and rig',
+    cmds.shelfButton(annotation='Create Arm Rig',
         image='mayaIcon.png',
         command=makeArmWindow,
-        parent=createdShelf 
-        ) 
-        
+        parent=shelf 
+        )
+
+def createShelf():
+    shelfName='HD_Vehicle'
+    mel.eval('global string $gShelfTopLevel;')
+    mainShelfLayout=mel.eval('$tmp=$gShelfTopLevel;')
+
+    if not cmds.shelfLayout(shelfName,query=True, exists=True):
+        createdShelf=mel.eval('addNewShelfTab "%s";'%shelfName)
+    else:
+        emptyShelf(shelfName)
+
+    populateShelf(shelfName)    
+
 if __name__ == '__main__': createShelf()
