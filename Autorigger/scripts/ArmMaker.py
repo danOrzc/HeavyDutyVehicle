@@ -1,7 +1,16 @@
+"""Vehicle arm rigger.
+
+This script creates a window that helps the user to rig
+a mechanical arm.
+
+"""
+
 # Importing maya commands
 from maya import cmds
 
 def start():
+    """This function initializes and saves the needed variables"""
+
     start.nameList = []           # List to save the different names of the locators (their numbers)
     start.locList = []            # List to save a reference to the locators themselves
     start.locPosList = []         # List to save each of the position of the locators
@@ -9,7 +18,8 @@ def start():
     start.armsValue = 1           # Number of arms selected by the user
 
 def makeWindow():
-    # Declaring global variables to be used accross different functions
+    """This function creates and displays the window"""
+
     name = "AutoRigger"     # The name for the window
 
     # Here we have the main UI for the rigger
@@ -23,9 +33,12 @@ def makeWindow():
     cmds.showWindow()
 
 def populateWindow():
-     # Create grid layout
-
+    """This function creates the UI elements"""
+    
+    # Initialize variables
     start()
+
+    # Create main grid layout
     mainLayout = cmds.gridLayout(nc=1, cw=300)
 
     cmds.text("Arm rigging process 001: The Arm")
@@ -44,8 +57,9 @@ def populateWindow():
     cmds.setParent( '..' )
     return mainLayout
 
-# The functions
 def namingFor(*args):
+    """This function queries the number of arms needed and uses it to save the names that the locators and joints will have"""
+
     # We query the value from the int slider and save it into the variable
     start.armsValue = cmds.intSliderGrp(start.numArms, q=True, v=True)
     # We iterate over this number
@@ -54,6 +68,8 @@ def namingFor(*args):
         start.nameList.append(i)
 
 def makeLoc(*args):
+    """This function creates locators based on the number specified by the user"""
+
     # We query the number of arms given by the user
     start.armsValue = cmds.intSliderGrp(start.numArms, q=True, v=True)
     # We iterate over this number
@@ -69,6 +85,8 @@ def makeLoc(*args):
     updateUI(True)
 
 def delLoc(*args):
+    """This function deletes the locators and restarts the lists to redo the process"""
+
     # Iterate over the list of locators
     for i in start.locList:
         # Try to delete the locators
@@ -86,9 +104,9 @@ def delLoc(*args):
     # Modifies the UI so the buttons get enabled or disabled
     updateUI(False)
 
-# Function that enables and disables buttons
-# hasLocators defines if the locators have been created
 def updateUI(hasLocators):
+    """This function enables or disable buttons based on the existance of locators"""
+
     # Modify the make locators button so it is disable when there are locators
     cmds.button(start.makeBttn, e=True, enable=not hasLocators)
 
@@ -103,6 +121,7 @@ def updateUI(hasLocators):
         cmds.text(start.instText, e=True, l="")
 
 def saveLoc():
+    """This function saves the location of the locators"""
     # Iterate over the list of locators
     for i in start.locList:
         # Save their world positions
@@ -114,6 +133,8 @@ def saveLoc():
         start.locPosList.append((xPos, yPos, zPos))
 
 def makeJnt(*args):
+    """This function creates a joint for each locator that was created"""
+
     # Get every position of the locators
     saveLoc()
     cmds.select(cl=True)
@@ -129,6 +150,8 @@ def makeJnt(*args):
     makeIK()
 
 def makeIK(*args):
+    """This function creates IK handles on the joints that were created"""
+
     bucketIK = cmds.ikHandle(startJoint=start.jointList[-2], endEffector=start.jointList[-1], sol="ikSCsolver", sticky="sticky")[0]
     bucketCtrl = cmds.circle(name="bucketCtrl")[0]
 
@@ -152,12 +175,18 @@ def makeIK(*args):
     delLoc()
 
 def assignGeometry(*args):
+    """This function creates a parent contraint so the joints can control the geometry"""
     pieces = cmds.ls(selection=True, transforms=True)
 
     for i,p in enumerate(pieces):
         cmds.select(start.jointList[i], p)
         cmds.parentConstraint(maintainOffset=True)
     
-
-
+# __name__ is a variable that all python modules have when executed
+# When a python module is executed directly (pasting it on script editor,
+# charcoal or through vsCode), the name is "__main__"
+# When a python module is imported, the name is the name of the .py file
+# or the alias assigned to it with "as" keyword
+# This line specifies that makeWindow() function should only get called
+# when running this module directly and not trough imports
 if __name__ == "__main__": makeWindow()

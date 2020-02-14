@@ -10,6 +10,7 @@ from maya import cmds
 
 def __start():
     """This function creates the tool's tab and shelf"""
+    
     import mainMenuTab
     mainMenuTab.createTab()
     import mainMenuShelf

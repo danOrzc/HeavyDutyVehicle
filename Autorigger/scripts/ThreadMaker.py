@@ -1,16 +1,13 @@
-from maya import cmds
+"""This tool creates a window that allows the user to create a thank thread
 
 """
-    This tool creates a window that allows the user to create a thank thread
-    by Team Mighty Eagle and friends
-    
-    Laio Passos
-    Ian Pease
-    Daniel Orozco
-"""
+
+from maya import cmds
 
 # Function to create the main window UI
 def makeWindow():
+    """This function creates and displays a window"""
+
     winName = "ThreadMaker"
     
     # Check if the window is already open
@@ -30,6 +27,8 @@ def makeWindow():
     cmds.showWindow()
 
 def populateWindow():
+    """This function add the UI elements to the window"""
+
     # Main layout for UI
     mainLayout = cmds.columnLayout()
      
@@ -68,9 +67,9 @@ def populateWindow():
     cmds.frameLayout(label="Making Thread")
     cmds.text(label="Now create the thread")
     
-    # Nested function that updates the UI depending on the creation method
     def updateUI(value):
-        
+        """Nested function that updates the UI depending on the creation method"""
+
         # Update elements
         cmds.checkBox("useProxy",e=True, en=not value)
         cmds.checkBox("bboxCheck",e=True, en=not value)
@@ -110,15 +109,17 @@ def populateWindow():
 
     return mainLayout
 
-# This function creates the locators
 def initFunc(*args):
+    """This function creates the locators"""
+
     cmds.spaceLocator(name="CircleLocator001")
     cmds.scale(4,4,4)
     cmds.spaceLocator(name="CircleLocator002")
     cmds.scale(4,4,4)
 
-# This function creates a default proxy geo if the user does not provides one   
 def makeProxyGeo():
+    """This function creates a default proxy geo if the user does not provides one """
+
     geo = cmds.polyCube(name="ThreadProxyGeo", width=5, height=.5, depth=1, sx=5)[0]
     faces = [0,2,4,11,13]
     cmds.select(clear=True)
@@ -131,8 +132,9 @@ def makeProxyGeo():
     cmds.DeleteHistory()
     return geo
     
-# Function that renames User's geo to match our naming conventions
 def renamePreMade():
+    """Function that renames User's geo to match our naming conventions"""
+
     userObj = cmds.textFieldButtonGrp("threadName", query=True, text=True)
     
     if not userObj:
@@ -142,8 +144,9 @@ def renamePreMade():
     cmds.select(userObj)    
     userObj = cmds.rename("ThreadMesh")
 
-# This function creates the circle that represent the thread   
 def makeThread(*args):
+    """This function creates the circle that represent the thread"""
+
     cmds.select("CircleLocator001")
     loc1Pos = cmds.getAttr(".translateZ")
     cmds.select("CircleLocator002")
@@ -170,8 +173,9 @@ def makeThread(*args):
     
     cmds.select("ThreadCurve")
     
-# This function makes a thread out of the selected object
 def makeTreadObj(*args):
+    """This function makes a thread out of the selected object"""
+
     usePreMade = cmds.radioButton("premadeGeo", query=True, select=True)
     
     if usePreMade:
@@ -242,12 +246,16 @@ def makeTreadObj(*args):
     cmds.setAttr("%s.visibility"%userObj, False)
 
 def RemakeThread(*args):
+    """This function remakes the thread if the user changes the amount of pieces"""
+
     if cmds.objExists("ThreadMesh"):
         cmds.select("ThreadMesh",r=True)
         cmds.delete()
         makeTreadObj()
 
 def finalizeThread(*args):    
+    """This function creates a wire deformer that drives the shape of the mesh with a curve"""
+
     # Here we make wire deformer
     def makeWire(geo, CCurve, dropOffD=10):
         theWire = cmds.wire(geo, w=CCurve, n ="inputWire")
@@ -268,6 +276,8 @@ def finalizeThread(*args):
     createCubeController()
     
 def addClusters():
+    """This function adds clusters to the curve"""
+
     cvList = cmds.ls("ThreadCurve.cv[*]", flatten=True)
     clusterList = []
     
@@ -278,6 +288,8 @@ def addClusters():
     return clusterList
 
 def createCubeController():
+    """This functio creates a controller to drive the clusters"""
+
     # Create list of clusters
     clusterList = addClusters()
     
@@ -301,8 +313,14 @@ def createCubeController():
     cmds.select("clusterCtrl*")
     cmds.group(name="ClusterControlGroup")
 
+    cmds.select("cluster*Handle")
+    handleGroup = cmds.group(name="ClusterHandlesGroup")
+    cmds.setAttr("%s.visibility"%handleGroup,0)
+
 
 def pickingObj(*args):
+    """This function saves the name of the selected object in the field button"""
+
     selectedObj=cmds.ls(selection=True, objectsOnly=True)[0]
     cmds.textFieldButtonGrp("threadName", edit=True, text=selectedObj)
     
@@ -310,7 +328,13 @@ def pickingObj(*args):
 '''
     ----------------------------------- First Dialog and Window Creation -----------------------------------------
 '''
-
+# __name__ is a variable that all python modules have when executed
+# When a python module is executed directly (pasting it on script editor,
+# charcoal or through vsCode), the name is "__main__"
+# When a python module is imported, the name is the name of the .py file
+# or the alias assigned to it with "as" keyword
+# This line specifies that the following should only get called
+# when running this module directly and not trough imports
 if __name__ == "__main__": 
     confirm = cmds.confirmDialog(t="Checking", m="Before proceeding, is your model placed on Z direction?", 
                                 b=["Yes", "No"], db="Yes", cb="No", ds="No")

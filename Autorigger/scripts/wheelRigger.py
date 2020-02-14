@@ -1,34 +1,57 @@
+"""Script for creating a wheel rig
+
+This tool takes a number of shapes and add a rig for them to
+act as a wheel.
+
+"""
+
 from maya import cmds
 
-locatorScale = 4.0
-
 def makeWindow():
+    """This function creates and displays a window"""
+
+    # The name of the window to reference it later
     windowName = "WheelMaker"
+
+    # If it is already open, close it
     if cmds.window(windowName, query=True, exists=True):
         cmds.deleteUI(windowName)
+
+    # Create the window
     cmds.window(windowName, title="Wheel Maker")
     cmds.window(windowName, edit=True, height=300, width=500)
     
+    # Add UI elements
     populateWindow()
 
+    # Display the window
     cmds.showWindow(windowName)
 
 def populateWindow():
+    """This function add the UI elements to the window"""
+
+    # Reference to our mainLayout to use it later
     mainLayout = cmds.columnLayout()
 
+    # A float slider that will keep the desired speed for the rotation
     makeWindow.RotSpeed = cmds.floatSliderGrp(field=True, value=1)
     
+    # The button to initialize the rig process
     cmds.button(label="Wheel Controls", command=wheelSelection, 
                 statusBarMessage="Select all the wheels in one set. Then click the button", 
                 annotation="Apply controls to selected wheel set")
 
     #cmds.button(label="Finalize", command=finale)
 
+    # Exit the main layout
     cmds.setParent("..")
 
+    # Return a reference to layout to use it later
     return mainLayout
 
 def wheelSelection(*args):
+    """This functiion groups the wheels and adds a locator to control their rotation"""
+
     print("Wheel Selection called")
 
     # Get the list of selected objects
@@ -38,7 +61,7 @@ def wheelSelection(*args):
     cmds.group(name="WheelsGroup")
     # Create locator controller
     locatorController = cmds.spaceLocator(name="WheelsCtrl")
-    cmds.scale(locatorScale,locatorScale,locatorScale)
+    cmds.scale(4.0,4.0,4.0)
     # Align locator to group
     cmds.select("WheelsGroup", add=True)
     cmds.align(xAxis="mid", yAxis="max", zAxis="mid", alignToLead=True)
@@ -51,8 +74,10 @@ def wheelSelection(*args):
         cmds.connectAttr("WheelsCtrl.tz", "{}.ry".format(wheel))
         '''
     
+    # Get the speed from the slider
     rotationSpeed = cmds.floatSliderGrp(makeWindow.RotSpeed, q=True, v=True)
 
+    # Add expression to control wheels
     for wheel in wheelSet:
         myExpression = cmds.expression(name="WheelSetRotation", string="{}.rotateX = WheelsCtrl.translateZ*{}".format(wheel, rotationSpeed))
         cmds.parentConstraint("WheelsCtrl", wheel, maintainOffset=True, skipRotate="x")
@@ -70,9 +95,18 @@ def finale(*args):
         cmds.parentConstraint("MainCT", controller, maintainOffset=True)
 
 def renamingAssets():
+    """This function renames the created controllers"""
+
     cmds.rename("WheelsCtrl", "WheelCTSet1")
     cmds.rename("WheelsGroup", "WheelG1")
 
+# __name__ is a variable that all python modules have when executed
+# When a python module is executed directly (pasting it on script editor,
+# charcoal or through vsCode), the name is "__main__"
+# When a python module is imported, the name is the name of the .py file
+# or the alias assigned to it with "as" keyword
+# This line specifies that makeWindow() function should only get called
+# when running this module directly and not trough imports
 if __name__ == "__main__": makeWindow()
     
 '''

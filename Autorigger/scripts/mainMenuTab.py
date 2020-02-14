@@ -23,6 +23,7 @@ logger.setLevel(logging.DEBUG)
 
 def __makeAutoriggingWindow(*args):
     """Loads the autoriggingWindow module and creates a window out of it."""
+
     import autoriggingWindow
 
     # We can set to DEBUG to reload the module each time we run the code
@@ -34,6 +35,7 @@ def __makeAutoriggingWindow(*args):
 
 def __makeWheelWindow(*args):
     """Loads the wheelRigger module and creates a window out of it."""
+
     import wheelRigger
 
     # We can set to DEBUG to reload the module each time we run the code
@@ -45,6 +47,7 @@ def __makeWheelWindow(*args):
 
 def __makeThreadWindow(*args):
     """Loads the ThreadMaker module and creates a window out of it."""
+
     import ThreadMaker
 
     # We can set to DEBUG to reload the module each time we run the code
@@ -56,6 +59,7 @@ def __makeThreadWindow(*args):
 
 def __makeArmWindow(*args):
     """Loads the ArmMaker module and creates a window out of it."""
+
     import ArmMaker
 
     # We can set to DEBUG to reload the module each time we run the code
@@ -83,6 +87,7 @@ def __populateTab(menu):
 
 def createTab():
     """Creates a tab menu that is attached to the MayaWindow"""
+    
     menuName = "HeavyDuty"
 
     # If the menu already exists, delete it

@@ -23,6 +23,7 @@ logger.setLevel(logging.DEBUG)  # Allows us to see debug messages, change to INF
 
 def __makeAutoriggingWindow(*args):
     """Loads the autoriggingWindow module and creates a window out of it."""
+
     import autoriggingWindow
 
     # We can set to DEBUG to reload the module each time we run the code
@@ -34,6 +35,7 @@ def __makeAutoriggingWindow(*args):
 
 def __makeWheelWindow(*args):
     """Loads the wheelRigger module and creates a window out of it."""
+
     import wheelRigger
 
     # We can set to DEBUG to reload the module each time we run the code
@@ -45,6 +47,7 @@ def __makeWheelWindow(*args):
 
 def __makeThreadWindow(*args):
     """Loads the ThreadMaker module and creates a window out of it."""
+
     import ThreadMaker
 
     # We can set to DEBUG to reload the module each time we run the code
@@ -56,6 +59,7 @@ def __makeThreadWindow(*args):
 
 def __makeArmWindow(*args):
     """Loads the ArmMaker module and creates a window out of it."""
+
     import ArmMaker
 
     # We can set to DEBUG to reload the module each time we run the code
@@ -67,6 +71,7 @@ def __makeArmWindow(*args):
 
 def __emptyShelf(shelf):
     """This function deletes all the buttons inside the shelf"""
+
     buttonList = cmds.shelfLayout(shelf, query=True, childArray=True)
     
     if buttonList:
@@ -77,6 +82,7 @@ def __emptyShelf(shelf):
 
 def __populateShelf(shelf):
     """This function creates the buttons on the shelf"""
+
 
     # Shelf button for full vehicle rigging
     cmds.shelfButton(annotation='Create Full Vehicle',
@@ -110,6 +116,7 @@ def __populateShelf(shelf):
 
 def createShelf():
     """This function creates a shelf in Maya"""
+    
     shelfName='HD_Vehicle'
 
     # If the shelf doesn't exist, create it
