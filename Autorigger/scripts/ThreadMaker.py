@@ -2,7 +2,7 @@
 
 """
 
-from maya import cmds
+from maya import cmds, mel
 
 # Function to create the main window UI
 def makeWindow():
@@ -158,18 +158,17 @@ def makeThread(*args):
     # Create the curve
     curveQuality = cmds.intSliderGrp("curveQuality", q=True, v=True)
     threadCurve = cmds.circle(name="ThreadCurve", radius=makeThread.curveRadius, nr=(1,0,0), sections=curveQuality)
-    cmds.move(0,0,locCenter)
+    #cmds.move(0,0,locCenter)
     
     # Here we align the circle to the locators
-    '''
+    
     cmds.group("CircleLocator001", "CircleLocator002", n="LocGroup")
     cmds.select("ThreadCurve")
     cmds.select("LocGroup", add=True)
-    cmds.align(z="mid", alignToLead=True)
+    cmds.align(x="mid", y="mid", z="mid", alignToLead=True)
     cmds.select("LocGroup")
     cmds.parent("CircleLocator001", "CircleLocator002", world=True)
     cmds.delete("LocGroup")
-    '''
     
     cmds.select("ThreadCurve")
     
@@ -274,6 +273,11 @@ def finalizeThread(*args):
     cmds.select("ThreadCurve", r=True)
     
     createCubeController()
+
+    # Delete locators
+    cmds.select("CircleLocator001", "CircleLocator002", "ThreadProxyGeo")
+    mel.eval("doDelete")
+
     
 def addClusters():
     """This function adds clusters to the curve"""
@@ -288,7 +292,7 @@ def addClusters():
     return clusterList
 
 def createCubeController():
-    """This functio creates a controller to drive the clusters"""
+    """This function creates a controller to drive the clusters"""
 
     # Create list of clusters
     clusterList = addClusters()
@@ -315,6 +319,7 @@ def createCubeController():
 
     cmds.select("cluster*Handle")
     handleGroup = cmds.group(name="ClusterHandlesGroup")
+    cmds.setAttr("ThreadCurve.visibility",0)
     cmds.setAttr("%s.visibility"%handleGroup,0)
 
 

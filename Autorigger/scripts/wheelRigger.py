@@ -81,7 +81,6 @@ def wheelSelection(*args):
     for wheel in wheelSet:
         myExpression = cmds.expression(name="WheelSetRotation", string="{}.rotateX = WheelsCtrl.translateZ*{}".format(wheel, rotationSpeed))
         cmds.parentConstraint("WheelsCtrl", wheel, maintainOffset=True, skipRotate="x")
-        print(wheel)
 
     renamingAssets()
 

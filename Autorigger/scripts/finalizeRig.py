@@ -8,13 +8,22 @@ parented in the outliner.
 """
 
 from maya import cmds
+import os
+import webbrowser
 
 def populateWindow():
     """This function creates the UI elements for finalizing the rig"""
 
     mainLayout = cmds.columnLayout()
 
-    cmds.textFieldButtonGrp("threadName", buttonLabel="Select Body Mesh", bc=pickingObj, placeholderText="Selected Mesh")
+    # RowLayout for the icons
+    iconPath = os.path.split(__file__)[0]
+    iconPath = os.path.split(iconPath)[0]
+    iconPath = os.path.join(iconPath, "icons")
+    eagleIcon = os.path.join(iconPath, "mightyEagle.png")
+    cmds.iconTextButton(image=eagleIcon, style="iconOnly", width=100, height=100, command=theEagle)
+
+    cmds.textFieldButtonGrp("bodyName", buttonLabel="Select Body Mesh", bc=pickingObj, placeholderText="Selected Mesh")
 
     cmds.button(label="Finalize Rig", command=finalizeRig, 
                 statusBarMessage="Select all the wheels in one set. Then click the button", 
@@ -28,7 +37,7 @@ def pickingObj(*args):
     """This function saves a reference to the object that will be used as the rig's body"""
 
     selectedObj=cmds.ls(selection=True, objectsOnly=True)[0]
-    cmds.textFieldButtonGrp("threadName", edit=True, text=selectedObj)
+    cmds.textFieldButtonGrp("bodyName", edit=True, text=selectedObj)
 
 def finalizeRig(*args):
     """This function is in charge of putting together the previous rig parts"""
@@ -45,7 +54,7 @@ def finalizeRig(*args):
     cmds.select(mainCtrl, "WheelCTSet1")
     cmds.parentConstraint(mo=True)
 
-    bodyMesh = cmds.textFieldButtonGrp("threadName", query=True, text=True)
+    bodyMesh = cmds.textFieldButtonGrp("bodyName", query=True, text=True)
 
     # Create circle for body
     bodyCtrl = cmds.circle(name="BodyController", normal=(0,1,0), radius=5)[0]
@@ -71,3 +80,10 @@ def finalizeRig(*args):
     cmds.select("ClusterControlGroup*", mainCtrl)
     # Parent to main group
     cmds.parent()
+
+    # Expression to drive thread with locator
+    myExpression = cmds.expression(name="ThreadSetRotation", string="ThreadCurveBaseWire.rotateX = WheelCTSet1.translateZ*{}".format( -50))
+
+def theEagle(*args):
+    # open a connection to a URL using urllib2
+    webbrowser.open("https://www.youtube.com/watch?v=IQnsREsChWs")

@@ -7,6 +7,7 @@ It imports each different files that are needed.
 """
 
 from maya import cmds
+import os
 
 import ThreadMaker as TM
 reload(TM)
@@ -32,6 +33,7 @@ def makeWindow():
 
     # Create the window 
     cmds.window(windowName, title="Auto rigger tool for Heavy Duty Vehicle")
+    cmds.window(windowName, edit=True, width=500)
 
     # Create the UI elements (buttons, etc)
     populateWindow()
@@ -58,21 +60,32 @@ def populateWindow():
     populateArmTab()
     cmds.setParent( '..' )
     
-    # Child tab for Pistons rigging tool
-    child3 = cmds.rowColumnLayout(numberOfColumns=2, visible=False)
-    cmds.setParent( '..' )
-    
     # Child tab for Finalizing
-    child4 = cmds.rowColumnLayout(numberOfColumns=2)
+    child3 = cmds.rowColumnLayout(numberOfColumns=2)
     populateFinalize()
     cmds.setParent( '..' )
     
     # Modify tab layout to add labels to each individual tab
-    cmds.tabLayout( tabs, edit=True, tabLabel=((child1, 'Bottom'), (child2, 'Arm'), (child3, 'Pistons'), (child4, 'Finalize')) )
+    cmds.tabLayout( tabs, edit=True, tabLabel=((child1, 'Bottom'), (child2, 'Arm'), (child3, 'Finalize')) )
     
 def populateBottomTab():
     """This function creates the content of the first tab of the window"""
 
+    # RowLayout for the icons
+    cmds.rowLayout(numberOfColumns=2)
+    iconPath = os.path.split(__file__)[0]
+    iconPath = os.path.split(iconPath)[0]
+    iconPath = os.path.join(iconPath, "icons")
+    treadIcon = os.path.join(iconPath, "tread.png")
+    cmds.iconTextButton(image=treadIcon, style="iconOnly", width=100, height=100, command=lambda:alternateLayout(True))
+    
+    wheelIcon = os.path.join(iconPath, "wheels.png")
+    cmds.iconTextButton(image=wheelIcon, style="iconOnly", width=100, height=100, command=lambda:alternateLayout(False))
+
+    cmds.setParent("..")
+
+    """
+    cmds.rowLayout(numberOfColumns=2)
     # Add collection for radio buttons so only one option is selected at any time
     cmds.radioCollection()
 
@@ -83,6 +96,16 @@ def populateBottomTab():
 
     # Radio button to select the wheels.
     cmds.radioButton(label="Wheels", changeCommand=lambda value: changeWheelLayout(value))
+
+    cmds.setParent("..")
+    """
+    def alternateLayout(value):
+        """This nested function changes the visibility for the thread maker's layout"""
+
+        # layout allows editing any kind of layout with knowing its exact type (grid, column, row, etc)
+        cmds.layout(threadLayout, edit=True, visible=value)
+        # layout allows editing any kind of layout with knowing its exact type (grid, column, row, etc)
+        cmds.layout(wheelLayout, edit=True, visible=not value)
     
     def changeThreadLayout(value):
         """This nested function changes the visibility for the thread maker's layout"""
