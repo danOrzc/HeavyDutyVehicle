@@ -71,16 +71,35 @@ def populateWindow():
 def populateBottomTab():
     """This function creates the content of the first tab of the window"""
 
-    # RowLayout for the icons
-    cmds.rowLayout(numberOfColumns=2)
+    cmds.separator(height=20, style="none")
+
+    # GridLayout for the labels and icons
+    cmds.rowLayout(numberOfColumns=5, columnWidth5=(100,100,100,100,100))
+
+    cmds.separator(width=100, style="none")
+    cmds.text(label="Build tread")
+    cmds.separator(width=100, style="none")
+    cmds.text(label="Wheel rigger")
+    cmds.separator(width=100, style="none")
+
+    cmds.setParent("..")
+
+    #cmds.gridLayout(theGrid, e=True, cellHeight=100)
+    cmds.rowLayout(numberOfColumns=5, columnWidth5=(100,100,100,100,100))
+    cmds.separator(width=100, style="none")
+
     iconPath = os.path.split(__file__)[0]
     iconPath = os.path.split(iconPath)[0]
     iconPath = os.path.join(iconPath, "icons")
     treadIcon = os.path.join(iconPath, "tread.png")
     cmds.iconTextButton(image=treadIcon, style="iconOnly", width=100, height=100, command=lambda:alternateLayout(True))
+
+    cmds.separator(width=100, style="none")
     
     wheelIcon = os.path.join(iconPath, "wheels.png")
     cmds.iconTextButton(image=wheelIcon, style="iconOnly", width=100, height=100, command=lambda:alternateLayout(False))
+
+    cmds.separator(width=100, style="none")
 
     cmds.setParent("..")
 

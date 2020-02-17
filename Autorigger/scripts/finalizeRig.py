@@ -10,6 +10,15 @@ parented in the outliner.
 from maya import cmds
 import os
 import webbrowser
+import dataNodeManager
+reload(dataNodeManager)
+
+class MainControllerData:
+    def __init__(self):
+        self.mainController = ""
+        self.mainGroup = ""
+
+data = MainControllerData()
 
 def populateWindow():
     """This function creates the UI elements for finalizing the rig"""
@@ -43,9 +52,12 @@ def finalizeRig(*args):
     """This function is in charge of putting together the previous rig parts"""
 
     # Create main controller
-    mainCtrl = cmds.circle(name="MainController", normal=(0,1,0), radius=10)[0]
+    data.mainController = cmds.circle(name="MainController", normal=(0,1,0), radius=10)[0]
     # Create group for all controllers
-    mainGrp = cmds.group(name="ControllerGroup")
+    data.mainGroup = cmds.group(name="MainControllerGroup")
+
+    parentTreads()
+    """
     # Select groups of wheels
     cmds.select("WheelCTSet*", mainGrp)
     # Parent to main group
@@ -83,7 +95,21 @@ def finalizeRig(*args):
 
     # Expression to drive thread with locator
     myExpression = cmds.expression(name="ThreadSetRotation", string="ThreadCurveBaseWire.rotateX = WheelCTSet1.translateZ*{}".format( -50))
+    """
 
 def theEagle(*args):
-    # open a connection to a URL using urllib2
+    # open a link
     webbrowser.open("https://www.youtube.com/watch?v=IQnsREsChWs")
+
+def parentTreads(*args):
+    treadData = dataNodeManager.getData(attributeName="treadControllers")
+
+    if not treadData:
+        return
+
+    for tread in treadData:
+        cmds.select(data.mainController, tread)
+        cmds.parentConstraint(mo=True)
+
+        cmds.select(tread, data.mainGroup)
+        cmds.parent()
