@@ -80,9 +80,14 @@ def populateWindow():
     start()
 
     # Create main grid layout
-    mainLayout = cmds.gridLayout(numberOfColumns=1, cellWidth=500)
+    mainLayout = cmds.gridLayout(numberOfColumns=1, cellWidth=500, cellHeight=25)
 
     cmds.text(align="left", font="boldLabelFont", label="Create locators to set the location of the joints")
+    cmds.text(align="left", label="1 Piece creates only a rotating scoop")
+    cmds.text(align="left", label="2 Pieces create a rotating scoop + pivot arm piece")
+    cmds.text(align="left", label="3 Pieces create an arm + a rotating scoop")
+    cmds.text(align="left", label="4 Pieces create a body/cabin + an arm + a rotating scoop")
+    
     start.numArms=cmds.intSliderGrp(l="Arm pieces",min=1, max=6, v=4, f=True, cc=namingFor,
                                     statusBarMessage="The number of arm pieces. 1 for only a scoop. 3 for just arm. 4 for arm AND body", 
                                     annotation="The number of arm pieces. 1 for only a scoop. 3 for just arm. 4 for arm AND body")
@@ -91,16 +96,24 @@ def populateWindow():
                                 statusBarMessage="Create locators to choose the location of the joints", 
                                 annotation="Create locators to choose the location of the joints")
 
+
+    cmds.separator(height=20)
+
     start.instText = cmds.text(align="left", font="boldLabelFont", l="")
 
-    cmds.text(align="left", font="boldLabelFont", label="You can reset the locators positions")
+    cmds.text(align="left", font="boldLabelFont", label="Click to delete locators")
     start.resetBttn = cmds.button(l="Reset locators", c=delLoc, enable=False)
 
     cmds.text(align="left", font="boldLabelFont", label="Click to place joints on locators")
+    cmds.text(align="left", label="To allow IKs to work properly make sure the arm is bent.")
     start.createJntsBttn = cmds.button(l="Place joints", c=makeJnt, enable=False)
 
+    cmds.separator(height=20)
+
     cmds.text(align="left", font="boldLabelFont", label="Select the mesh pieces from the body to the bucket")
-    cmds.text(label="Please select each piece in order.")
+    cmds.text(align="left", label="Please select each piece in order.")
+    cmds.text(align="left", label="*** Assign the geometry before creating another arm. ***")
+    cmds.text(align="left", label="This button assigns geo to the last created arm only.")
     cmds.button(label="Assign Geometry", command=assignGeometry,
                 statusBarMessage="Assign selected geometries to the joints", 
                 annotation="Assign selected geometries to the joints")
@@ -150,7 +163,6 @@ def delLoc(*args):
     # Empty the lists so we don't keep their references
     del start.locList[:]
     del start.locPosList[:]
-    #del start.jointList[:]
 
     # Modifies the UI so the buttons get enabled or disabled
     updateUI(False)
@@ -185,6 +197,9 @@ def saveLoc():
 
 def makeJnt(*args):
     """This function creates a joint for each locator that was created"""
+
+    # Delete previous references in joint list
+    del start.jointList[:]
 
     # Get every position of the locators
     saveLoc()

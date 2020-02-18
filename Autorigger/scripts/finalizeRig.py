@@ -28,8 +28,14 @@ data = MainControllerData()
 def populateWindow():
     """This function creates the UI elements for finalizing the rig"""
 
-    # Create main grid layout
-    mainLayout = cmds.gridLayout(numberOfColumns=1, cellWidth=500, cellHeight=200)
+    # Create main column layout
+    mainLayout = cmds.columnLayout()
+    # Separate from top of window
+    cmds.separator(height=25, style="none")
+    cmds.text(align="left", font="boldLabelFont", label="Parent all controllers to a MainController")
+    
+    # Add grid layout for icon and button
+    cmds.gridLayout(numberOfColumns=1, cellWidth=500, cellHeight=200)
 
     # Setting the columns to 3 so the buttons can be centered
     # - separator - button - separator
@@ -61,11 +67,13 @@ def populateWindow():
     # Setting the columns to 3 so the buttons can be centered
     # - separator - button - separator
     cmds.rowLayout(numberOfColumns=3, columnWidth3=(200,200,100), height=200)
-    cmds.separator(width=200, style="none")
+    cmds.separator(width=250, style="none")
     cmds.iconTextButton(image=eagleIcon, style="iconOnly", width=200, height=200, command=theEagle)
-    cmds.separator(width=100, style="none")
-
+    cmds.separator(width=50, style="none")
     # Get out of rowLayout
+    cmds.setParent("..")
+
+    # Get out of gridLayout
     cmds.setParent("..")
     
     # Get out of mainLayout
