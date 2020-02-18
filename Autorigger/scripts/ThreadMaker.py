@@ -6,7 +6,40 @@ from maya import cmds
 import dataNodeManager
 reload(dataNodeManager)
 
-class TreadData:
+class TreadData(dataNodeManager.NodeData):
+    """A class to save information for this rigging process.
+
+    This class inherits from NodeData in dataNodeManager.py so we can access the node managing functions.
+
+    Attributes
+    ----------
+    firstLocator : str
+        The name of the first locator
+    secondLocator : str
+        The name of the second locator
+    curveRadius : float
+        The radius of the curve in the middle of the rotators
+    treadCircle : str
+        The name of the nurbs circle that is used to create the tread
+    treadBaseWire : str
+        The name of the BaseWire object that is created when applying a wire deformation
+    treadMesh : str
+        The name of the mesh that is built on the curve
+    mainController : str
+        The name of the main nurbs curve that controls the rig
+    mainControllerGroup : str
+        The name of the group where the mainController is
+    controllerAttributeName : str
+        The name of the type of rig that is saved (i.e. wheelControllers, treadControllers, armControllers)
+    controllerGroupAttributeName : str
+        The name of the type of rig GROUP that is saved (i.e. wheelControllerGroups, treadControllerGroups, armControllerGroups)
+
+    Methods
+    -------
+    writeToNode() Inherited
+        Takes the rigging info and stores it in a node
+    
+    """
     def __init__(self):
         self.firstLocator = ""
         self.secondLocator = ""
@@ -15,9 +48,9 @@ class TreadData:
         self.treadBaseWire = ""
         self.treadMesh = ""
         self.mainController = ""
-
-    def writeToNode(self):
-        dataNodeManager.saveData(attributeName="treadControllers", value=self.mainController)
+        self.mainControllerGroup =""
+        self.controllerAttributeName = "treadControllers"
+        self.controllerGroupAttributeName = "treadControllerGroups"
     
 data = TreadData()
 
@@ -35,12 +68,13 @@ def makeWindow():
         cmds.windowPref(winName, remove=True)
     
     # If it doesn't exist, make it    
-    cmds.window(winName, title="Tread Maker and Rigger")
+    cmds.window(winName, title="Tread Maker and Rigger", sizeable=False)
     cmds.window(winName, edit=True, width=500)
-    cmds.window(winName, edit=True, topLeftCorner=[0,0])
     
+    # Add UI elements
     populateWindow()
 
+    # Show window
     cmds.showWindow()
 
 def populateWindow():
@@ -49,41 +83,61 @@ def populateWindow():
     # Main layout for UI
     mainLayout = cmds.columnLayout()
      
-    '''
-    ----------------------------------- Locator Creation -----------------------------------------
-    '''
+    # ----------------------------------- Locator Creation -----------------------------------------
     
+    # Frame layout for locators
     cmds.frameLayout(label="Locators")
-    cmds.text(label="This is the very first step on the process")
-    cmds.gridLayout(numberOfColumns=1, cellWidth=500)
+    cmds.text(align="left", font="boldLabelFont", label="Create locators to define tread's radius.")
+    cmds.text(align="left", label="Select objects to adjust the locators to their bounding box automatically.")
     
-    cmds.button(label="Initialize", command=initFunc)
+    # Setting the columns to 3 so the buttons can be centered
+    # - separator - button - separator
+    cmds.rowLayout(numberOfColumns=3, columnWidth3=(150,200,150))
+    cmds.separator(width=150, style="none")
+    cmds.button(label="Initialize", command=initFunc, width=200,
+                annotation="Click to create locators to define Tread's radius",
+                statusBarMessage="Click to create locators to define Tread's radius")
+    cmds.separator(width=150, style="none")
+    # Get out of rowLayout
+    cmds.setParent("..")
     
+    # Add separator at the end of frame layout
     cmds.separator(h=5)
+
+    # Get out of Locator's frame layout
     cmds.setParent('..')
-    cmds.setParent('..')
     
-    
-    '''
-    ----------------------------------- Circle Creation -----------------------------------------
-    '''
-    
+    # ----------------------------------- Circle Creation -----------------------------------------
+
+    # Frame layout for Curve creation
     cmds.frameLayout(label="Curve")
-    cmds.text(label="This is the second step on the process")
-    cmds.gridLayout(numberOfColumns=1, cellWidth=500)
-    cmds.intSliderGrp("curveQuality", l="Curve quality", f=True, v=6, minValue=6, maxValue=20)
-    cmds.button(label="Make Curve", c=makeTread)
+    cmds.text(align="left", font="boldLabelFont", label="Create circle using locators.")
+    cmds.intSliderGrp("curveQuality", label="Curve quality", field=True, value=6, minValue=6, maxValue=20,
+                      annotation="This is the number of points the curve will have to modify its shape.",
+                      statusBarMessage="This is the number of points the curve will have to modify its shape.")
+
+    # Setting the columns to 3 so the buttons can be centered
+    # - separator - button - separator
+    cmds.rowLayout(numberOfColumns=3, columnWidth3=(150,200,150))
+    cmds.separator(width=150, style="none")
+    cmds.button(label="Make Curve", c=makeTread, width=200,
+                annotation="Click to create a nurbs cirlce between the locators.",
+                statusBarMessage="Click to create a nurbs cirlce between the locators.")
+    cmds.separator(width=150, style="none")
+    # Get out of rowLayout
+    cmds.setParent("..")
     
+    # Add separator at the end of frame layout
     cmds.separator(h=5)
-    cmds.setParent('..')
+    
+    # Get out of curve's frame layout
     cmds.setParent('..')
     
-    '''
-    ----------------------------------- Tread Creation -----------------------------------------
-    '''
-    
+    # ----------------------------------- Tread Creation -----------------------------------------
+
+    # Frame layout for tread mesh creation
     cmds.frameLayout(label="Making Tread")
-    cmds.text(label="Now create the tread")
+    cmds.text(align="left", font="boldLabelFont", label="Tread mesh creation")
     
     def updateUI(value):
         """Nested function that updates the UI depending on the creation method"""
@@ -105,22 +159,57 @@ def populateWindow():
     # Radio Buttons for choosing between piece or whole mesh
     cmds.gridLayout(numberOfColumns=2, cellWidth=250)
     cmds.radioCollection()
-    cmds.radioButton("premadeGeo", label="Previously created geometry", cc= lambda value: updateUI(value))
-    cmds.radioButton(label="Make tread from a piece", select=True)
+    cmds.radioButton("premadeGeo", label="Previously created geometry", cc= lambda value: updateUI(value), enable=False,
+                    annotation="Use already created mesh tread. (WIP)",
+                    statusBarMessage="Use already created mesh tread. (WIP)")
+    cmds.radioButton(label="Make tread from a piece", select=True,
+                    annotation="Use a geometry to duplicate around the circle.",
+                    statusBarMessage="Use a geometry to duplicate around the circle.")
     cmds.setParent('..')
     
     # Layout for creation methods
     cmds.gridLayout("treadGridLO", numberOfColumns=1, cellWidth=500)
-    cmds.checkBox("useProxy", label="Create Proxy Geo", cc= lambda value: cmds.textFieldButtonGrp("treadName",e=True, en=not value))
-    cmds.textFieldButtonGrp("treadName", buttonLabel="Pick Selected", bc=pickingObj, placeholderText="Selected Mesh")
-    cmds.checkBox("bboxCheck", label="Use piece's bounding box", cc= lambda value: cmds.intSliderGrp("treadAmount",e=True, en=not value))
-    cmds.intSliderGrp("treadAmount", l="Amount of treads", f=True, v=20, minValue=1, maxValue=500, cc=RemakeTread)
-    cmds.button(label="Make Tread", c=makeTreadObj)
+    # Checkbox to decide if using a Proxy (default) geometry
+    cmds.checkBox("useProxy", label="Create Proxy Geo", cc= lambda value: cmds.textFieldButtonGrp("treadName",e=True, en=not value),
+                    annotation="Use a default tread piece.",
+                    statusBarMessage="Use a default tread piece.")
+    # This textField saves the name of the piece that the user wants to duplicate around the circle
+    cmds.textFieldButtonGrp("treadName", buttonLabel="Pick Selected", bc=pickingObj, placeholderText="Selected Mesh",
+                            annotation="Use a default tread piece.",
+                            statusBarMessage="Use a default tread piece.")
+    # Checkbox to decide if using the piece's bounding box to calculate the amount of duplicates
+    cmds.checkBox("bboxCheck", label="Use piece's bounding box", cc= lambda value: cmds.intSliderGrp("treadAmount",e=True, en=not value),
+                    annotation="Use piece's measures to calculate the amount of pieces around the circle",
+                    statusBarMessage="Use piece's measures to calculate the amount of pieces around the circle")
+    # Amount of pieces around the circle
+    cmds.intSliderGrp("treadAmount", l="Amount of treads", f=True, v=20, minValue=1, maxValue=500, cc=RemakeTread,
+                    annotation="Define how many pieces to create around the circle",
+                    statusBarMessage="Define how many pieces to create around the circle")
+
+    # Setting the columns to 3 so the buttons can be centered
+    # - separator - button - separator
+    cmds.rowLayout(numberOfColumns=3, columnWidth3=(150,200,150))
+    cmds.separator(width=150, style="none")
+    cmds.button(label="Make Tread Mesh", c=makeTreadObj, width=200,
+                annotation="Create tread's mesh aroung circle using chose parameters.",
+                statusBarMessage="Create tread's mesh aroung circle using chose parameters.")
+    cmds.separator(width=150, style="none")
+    cmds.setParent('..')
     
     cmds.setParent('..')
     cmds.separator(h=5)
-    cmds.text(label="Finalize before modifying the curve points")
-    cmds.button(l="Finalize", c=finalizeTread)
+    cmds.text(align="left", font="boldLabelFont", label="Finalize before modifying the curve points")
+    cmds.text(align="left", label="Create main controller and curvePoints controllers")
+
+    # Setting the columns to 3 so the buttons can be centered
+    # - separator - button - separator
+    cmds.rowLayout(numberOfColumns=3, columnWidth3=(150,200,150))
+    cmds.separator(width=150, style="none")
+    cmds.button(l="Finalize", c=finalizeTread, width=200,
+                annotation="Finalize by creating controllers on the curve.",
+                statusBarMessage="Finalize by creating controllers on the curve.")
+    cmds.separator(width=150, style="none")
+    cmds.setParent('..')
     
     cmds.setParent('..')
     cmds.setParent('..')
@@ -261,7 +350,6 @@ def makeTreadObj(*args):
     cmds.select(userObj, replace=True)
     
     # Verify if we want to use the actual measures of the object
-    
     useBbox = cmds.checkBox("bboxCheck", q=True, v=True)
     
     if useBbox:
@@ -350,13 +438,16 @@ def finalizeTread(*args):
     data.mainController = makeMainController()
     data.mainController = checkDuplicatedName(data.mainController)
 
-    mainGroup = cmds.group(data.mainController, name="TreadMainControllerGroup")
+    data.mainControllerGroup = cmds.group(data.mainController, name="TreadMainControllerGroup")
 
-    cmds.select(mainGroup, data.treadMesh)
+    cmds.select(data.mainControllerGroup, data.treadMesh)
     # Align the circle to the mesh
     cmds.align(x="mid", z="mid", alignToLead=True)
+
     # Parent curve controllers to main controller
+    cmds.parent(controlGroups[0], data.mainController)
     cmds.parent(controlGroups[1], data.mainController)
+
     # Constraint curves and mesh to main controller to rotate properly due to wire deformer
     cmds.select(data.mainController,data.treadMesh)
     cmds.orientConstraint(maintainOffset=True)
@@ -377,7 +468,8 @@ def makeMainController(controlName="TreadMainController"):
 
     meshBounds = cmds.exactWorldBoundingBox(data.treadMesh)
     length = abs(meshBounds[5]-meshBounds[2])
-    mainController = cmds.circle(name=controlName, radius=length, normal=(0,1,0))[0]
+    
+    mainController = cmds.circle(name=controlName, radius=data.curveRadius, normal=(0,1,0))[0]
 
     return mainController
 
@@ -499,7 +591,10 @@ def controlOnLocator(controllerName="controller", *args):
 def pickingObj(*args):
     """This function saves the name of the selected object in the field button"""
 
+    # List of the selected objects, we use [0] to get only the first element
     selectedObj=cmds.ls(selection=True, objectsOnly=True)[0]
+
+    # Edit textField to save the name of the object
     cmds.textFieldButtonGrp("treadName", edit=True, text=selectedObj)
 
 def checkDuplicatedName(obj):
@@ -509,7 +604,6 @@ def checkDuplicatedName(obj):
     while("|" in obj):
         tries +=1
         obj = renameDuplicatedObject(obj, tries)
-        #duplicated = obj
     
     return obj
 

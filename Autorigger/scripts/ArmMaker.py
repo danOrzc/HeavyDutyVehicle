@@ -7,6 +7,46 @@ a mechanical arm.
 
 # Importing maya commands
 from maya import cmds
+import dataNodeManager
+reload(dataNodeManager)
+
+class ArmData(dataNodeManager.NodeData):
+    """A class to save information for this rigging process.
+
+    This class inherits from NodeData in dataNodeManager.py so we can access the node managing functions.
+
+    Attributes
+    ----------
+    rootJoint : str
+        The name of the joint on the top of the hierarchy
+    rootController : str
+        The name of the top controller that contains the IK Handles
+    mainController : str
+        The name of the main nurbs curve that controls the rig
+    mainControllerGroup : str
+        The name of the group where the mainController is
+    controllerAttributeName : str
+        The name of the type of rig that is saved (i.e. wheelControllers, treadControllers, armControllers)
+    controllerGroupAttributeName : str
+        The name of the type of rig GROUP that is saved (i.e. wheelControllerGroups, treadControllerGroups, armControllerGroups)
+
+    Methods
+    -------
+    writeToNode() Inherited
+        Takes the rigging info and stores it in a node
+    
+    """
+
+    def __init__(self):
+        self.rootJoint = ""
+        self.rootController = ""
+        self.mainController = ""
+        self.mainControllerGroup =""
+        self.controllerAttributeName = "armControllers"
+        self.controllerGroupAttributeName = "armControllerGroups"
+
+# Create object of class to access attributes
+data = ArmData()
 
 def start():
     """This function initializes and saves the needed variables"""
@@ -28,6 +68,7 @@ def makeWindow():
 
     cmds.window(name)
    
+    # Create UI elements
     populateWindow()
 
     cmds.showWindow()
@@ -39,20 +80,30 @@ def populateWindow():
     start()
 
     # Create main grid layout
-    mainLayout = cmds.gridLayout(nc=1, cw=300)
+    mainLayout = cmds.gridLayout(numberOfColumns=1, cellWidth=500)
 
-    cmds.text("Arm rigging process 001: The Arm")
-    start.numArms=cmds.intSliderGrp(l="Arm pieces",min=1, max=6, v=1, f=True, cc=namingFor)
+    cmds.text(align="left", font="boldLabelFont", label="Create locators to set the location of the joints")
+    start.numArms=cmds.intSliderGrp(l="Arm pieces",min=1, max=6, v=4, f=True, cc=namingFor,
+                                    statusBarMessage="The number of arm pieces. 1 for only a scoop. 3 for just arm. 4 for arm AND body", 
+                                    annotation="The number of arm pieces. 1 for only a scoop. 3 for just arm. 4 for arm AND body")
 
-    start.makeBttn = cmds.button(l="Make locators", c=makeLoc)
+    start.makeBttn = cmds.button(l="Make locators", c=makeLoc,
+                                statusBarMessage="Create locators to choose the location of the joints", 
+                                annotation="Create locators to choose the location of the joints")
 
-    start.instText = cmds.text(l="")
+    start.instText = cmds.text(align="left", font="boldLabelFont", l="")
 
+    cmds.text(align="left", font="boldLabelFont", label="You can reset the locators positions")
     start.resetBttn = cmds.button(l="Reset locators", c=delLoc, enable=False)
+
+    cmds.text(align="left", font="boldLabelFont", label="Click to place joints on locators")
     start.createJntsBttn = cmds.button(l="Place joints", c=makeJnt, enable=False)
 
-    cmds.text(label="Select the mesh pieces from the body to the bucket")
-    cmds.button(label="Assign Geometry", command=assignGeometry)
+    cmds.text(align="left", font="boldLabelFont", label="Select the mesh pieces from the body to the bucket")
+    cmds.text(label="Please select each piece in order.")
+    cmds.button(label="Assign Geometry", command=assignGeometry,
+                statusBarMessage="Assign selected geometries to the joints", 
+                annotation="Assign selected geometries to the joints")
 
     cmds.setParent( '..' )
     return mainLayout
@@ -79,7 +130,7 @@ def makeLoc(*args):
         # Center locator's pivot
         cmds.CenterPivot()
         # Move locator in world space so the user does not have to deal with local space
-        cmds.move(0,0,-(i-1)*5)
+        cmds.move(0,0,(i-1)*5)
     
     # Modifies the UI so the buttons get enabled or disabled
     updateUI(True)
@@ -140,47 +191,187 @@ def makeJnt(*args):
     cmds.select(cl=True)
     # Create a joint on each locator position
     for count, i in enumerate(start.locPosList, start=1):
-        start.jointList.append(cmds.joint(n="ArmJnt%i"%count if count<=len(start.locPosList)-1 else "BucketJnt", p=i))
+        jointName = "ArmJnt%i"%count if count<=len(start.locPosList)-1 else "BucketJnt"
+        jointName = checkDuplicatedName(jointName)
+        start.jointList.append(cmds.joint(n=jointName, p=i))
     
     # Select first joint on the chain
     cmds.select(start.jointList[0])
+    data.rootJoint = start.jointList[0]
+
     # Change joint's orient
     cmds.joint(edit=True, oj="xyz", sao="yup", ch=True, zso=True)
 
+    # Create IK handles on joints
     makeIK()
+
+    # Delete list references
+    delLoc()
+
+    # Create a main controller
+    makeMainController()
+
+    # Save info to node
+    data.writeToNode()
 
 def makeIK(*args):
     """This function creates IK handles on the joints that were created"""
 
-    bucketIK = cmds.ikHandle(startJoint=start.jointList[-2], endEffector=start.jointList[-1], sol="ikSCsolver", sticky="sticky")[0]
-    bucketCtrl = cmds.circle(name="bucketCtrl")[0]
+    # Create the IK handle that controls the bucket of the arm and save it to variable
+    # We use SingleChaing solveer as we are creating IK on two joints only
+    bucketIK = cmds.ikHandle(startJoint=start.jointList[-2], endEffector=start.jointList[-1], solver="ikSCsolver", sticky="sticky")[0]
 
+    # Check if there is a controller with the same name, 
+    # if there is, this function with generate a new one
+    bucketName = checkDuplicatedName("bucketCtrl")
+
+    # Create controller
+    bucketCtrl = cmds.circle(name=bucketName, radius=2)[0]
+
+    # Select both controller and IK
     cmds.select(bucketCtrl, bucketIK)
+
+    # Move controller to IK
     cmds.MatchTranslation()
+
+    # Select them reversed
     cmds.select(bucketIK, bucketCtrl)
+
+    # Parent IK to bucker
     cmds.parent()
 
-    if  start.armsValue > 2:
-        armIK = cmds.ikHandle(startJoint=start.jointList[0], endEffector=start.jointList[-2], sol="ikRPsolver")[0]
-        armCtrl = cmds.circle(name="armCtrl")[0]
+    # Save the name of the controller on data object
+    data.rootController = bucketCtrl
 
+    # If there are more than two arm pieces, we can create a second IK just for the arm
+    if  start.armsValue > 2:
+
+        # Create arm IK handle on the joint three indices from the last [-4] and the previous to last [-2]
+        # In python [-1] represents the last index on a list
+        # We use Rotate plane solver as we have a chain of three joints
+        armIK = cmds.ikHandle(startJoint=start.jointList[-4], endEffector=start.jointList[-2], solver="ikRPsolver")[0]
+
+        # Check if there is a controller with the same name, 
+        # if there is, this function with generate a new one
+        armName = checkDuplicatedName("armCtrl")
+
+        # Create controller for this IK
+        armCtrl = cmds.circle(name=armName, radius=2)[0]
+
+        # Move controller to IK and parent them correctly
         cmds.select(armCtrl, armIK)
         cmds.MatchTranslation()
         cmds.select(armIK, armCtrl)
         cmds.parent()
 
+        # Parent previous IK to this one
         cmds.select(bucketCtrl, armCtrl)
         cmds.parent()
 
-    delLoc()
+        # Add reference to data object
+        data.rootController = armCtrl
+
+def makeMainController():
+    """This function creates a MainController to drive the entire arm"""
+
+    # Check if there is a controller with the same name, 
+    # if there is, this function with generate a new one
+    mainName = checkDuplicatedName("ArmMainController")
+
+    # Create controller
+    data.mainController = cmds.circle(name=mainName, radius=3, normal=(0,1,0))[0]
+
+    # Create offset group
+    data.mainControllerGroup = cmds.group(name="ArmMainControllerGroup")
+
+    # Move group to root joint
+    cmds.select(data.mainControllerGroup, data.rootJoint)
+    cmds.MatchTranslation()
+
+    # Parent joint and controller to this new MainController
+    cmds.select(data.rootController, data.rootJoint, data.mainController)
+    cmds.parent()
+    
 
 def assignGeometry(*args):
     """This function creates a parent contraint so the joints can control the geometry"""
+
+    # List of selected transform objects
     pieces = cmds.ls(selection=True, transforms=True)
 
-    for i,p in enumerate(pieces):
-        cmds.select(start.jointList[i], p)
+    # Iterate on the list of selected pieces
+    # enumerate(list) returns both the index of the piece and the piece name itself
+    # that's why we have two variables on the beginning of the loop,
+    # one to save the index and other for the meshes
+    for index, mesh in enumerate(pieces):
+
+        # Select the joint that shares the same index as the mesh piece
+        cmds.select(start.jointList[index], mesh)
+        # Apply parent contraing between them
         cmds.parentConstraint(maintainOffset=True)
+
+def checkDuplicatedName(name):
+    """This function checks if a name is duplicated in the scene, if it does, it generates a new one
+    
+    Parameters
+    ----------
+    name : str
+        The name to verify in the scene
+    """
+
+    # The amount of times that we have found the name
+    tries = 0
+
+    # While there is an object with the same name
+    while(cmds.objExists(name)):
+        # Increment the number of tries
+        tries +=1
+        # Generate new name
+        name = renameDuplicatedObject(name, tries)
+    
+    # Return the name
+    return name
+
+def renameDuplicatedObject(name, index=0):
+    """This function takes a name and adds an index to it
+    
+    Parameters
+    ----------
+    name : str
+        The name to append an index
+    index : int
+        The desired number to append to the name
+    """
+
+    # If the object exists on the scene
+    if cmds.objExists(name):
+
+        # Create a new name based on previous
+        newName = name
+
+        # Variable to save the number of digits the number should have
+        lastDigits = 0
+
+        # If we are not on index 0
+        if index > 1:
+            # The number of digits is based on the number of digits that the index has
+            lastDigits = len(str(index))
+
+            # Delete that number of digits from the name
+            # Using [fromIndex:toIndex] allows us to create a substring out of the string
+            # the parameters specify from where to where we want to sample that substring
+            # as we are using negative index, we are leaving the last characters on the string
+            # behind, as [-1] is the last index on a string
+            newName = newName[:-lastDigits]
+        
+        # Append index to name
+        newName += str(index)
+        # Return the new name
+        return newName
+
+    # If the object does not exist on the scene, simply return the original name
+    else:
+        return name
     
 # __name__ is a variable that all python modules have when executed
 # When a python module is executed directly (pasting it on script editor,

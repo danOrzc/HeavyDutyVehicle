@@ -22,3 +22,10 @@ Option 3.- Open just the window
 	Copy the contents of the "scripts" folder to Maya's "scripts" directory
 	From the recently copied files, drag autoriggingWindow.py to Maya's script editor and execute.
 	A window with the tools will appear on the screen.
+
+
+Heavy duty vehicle Rigging Tool by:
+	Team Mighty Eagle and Friends
+	- Laio Passos
+	- Ian Pease
+	- Daniel Orozco

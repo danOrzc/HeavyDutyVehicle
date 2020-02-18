@@ -30,9 +30,12 @@ def makeWindow():
     # Close the window if it already exists
     if cmds.window(windowName, query=True, exists=True):
         cmds.deleteUI(windowName)
+    # If it was closed, reset its prefs so it appears on default location
+    elif cmds.windowPref(windowName, exists=True):
+        cmds.windowPref(windowName, remove=True)
 
     # Create the window 
-    cmds.window(windowName, title="Auto rigger tool for Heavy Duty Vehicle")
+    cmds.window(windowName, title="Auto rigger tool for Heavy Duty Vehicle", sizeable=False)
     cmds.window(windowName, edit=True, width=500)
 
     # Create the UI elements (buttons, etc)
@@ -73,70 +76,70 @@ def populateBottomTab():
 
     cmds.separator(height=20, style="none")
 
-    # GridLayout for the labels and icons
+    # Row Layout for the iconButtons and labels
+    # Setting the columns to 5 so the labels can be centered
     cmds.rowLayout(numberOfColumns=5, columnWidth5=(100,100,100,100,100))
 
+    # - separator - label - separator - label - separator
     cmds.separator(width=100, style="none")
     cmds.text(label="Build tread")
     cmds.separator(width=100, style="none")
     cmds.text(label="Wheel rigger")
     cmds.separator(width=100, style="none")
 
+    # Get out of rowLayout
     cmds.setParent("..")
 
     #cmds.gridLayout(theGrid, e=True, cellHeight=100)
     cmds.rowLayout(numberOfColumns=5, columnWidth5=(100,100,100,100,100))
     cmds.separator(width=100, style="none")
 
+    # Getting the path to the icons folder
+    # __file__ is a variable that saves the location of .py file on disk
     iconPath = os.path.split(__file__)[0]
+
+    # Using split to get rid of the name of the .py file and keep only the folders
     iconPath = os.path.split(iconPath)[0]
+
+    # Using join to append a folder path without messing with operative system individualities
     iconPath = os.path.join(iconPath, "icons")
+
+    # Append the name of the icon file
     treadIcon = os.path.join(iconPath, "tread.png")
-    cmds.iconTextButton(image=treadIcon, style="iconOnly", width=100, height=100, command=lambda:alternateLayout(True))
+
+    # Create button with icon
+    cmds.iconTextButton(image=treadIcon, style="iconOnly", width=100, height=100, command=lambda:alternateLayout(True),
+                        annotation="Choose this option to change to Tread Creation panel",
+                        statusBarMessage="Choose this option to change to Tread Creation panel")
 
     cmds.separator(width=100, style="none")
     
+    # Append icon's name
     wheelIcon = os.path.join(iconPath, "wheels.png")
-    cmds.iconTextButton(image=wheelIcon, style="iconOnly", width=100, height=100, command=lambda:alternateLayout(False))
+
+    # Create button with icon
+    cmds.iconTextButton(image=wheelIcon, style="iconOnly", width=100, height=100, command=lambda:alternateLayout(False),
+                        annotation="Choose this option to change to Wheel Rigging panel",
+                        statusBarMessage="Choose this option to change to Wheel Rigging panel")
 
     cmds.separator(width=100, style="none")
 
+    # Get out of tbe row layout
     cmds.setParent("..")
 
-    """
-    cmds.rowLayout(numberOfColumns=2)
-    # Add collection for radio buttons so only one option is selected at any time
-    cmds.radioCollection()
-
-    # Radio button to select the thread.
-    # Lambda executes the speecified function passing 
-    # the current value of the button (if its selected or not)
-    cmds.radioButton(label="Tread", select=True, changeCommand=lambda value: changeThreadLayout(value))
-
-    # Radio button to select the wheels.
-    cmds.radioButton(label="Wheels", changeCommand=lambda value: changeWheelLayout(value))
-
-    cmds.setParent("..")
-    """
     def alternateLayout(value):
-        """This nested function changes the visibility for the thread maker's layout"""
+        """This nested function changes the visibility for the thread maker's layout
+        
+        Parameters
+        ----------
+        value : bool
+            When value is True, it will display the tread Layout. When False, it will show Wheel Layout
+        """
 
         # layout allows editing any kind of layout with knowing its exact type (grid, column, row, etc)
         cmds.layout(threadLayout, edit=True, visible=value)
         # layout allows editing any kind of layout with knowing its exact type (grid, column, row, etc)
         cmds.layout(wheelLayout, edit=True, visible=not value)
-    
-    def changeThreadLayout(value):
-        """This nested function changes the visibility for the thread maker's layout"""
-
-        # layout allows editing any kind of layout with knowing its exact type (grid, column, row, etc)
-        cmds.layout(threadLayout, edit=True, visible=value)
-        
-    def changeWheelLayout(value):
-        """This nested function changes the visibility for the wheel maker's layout"""
-
-        # layout allows editing any kind of layout with knowing its exact type (grid, column, row, etc)
-        cmds.layout(wheelLayout, edit=True, visible=value)
     
     # Create layout for thread maker
     threadLayout = TM.populateWindow()
@@ -145,7 +148,7 @@ def populateBottomTab():
     wheelLayout = WM.populateWindow()
 
     # Hide wheel layout first
-    changeWheelLayout(False)
+    alternateLayout(True)
     
 def populateArmTab():
     """This function creates the content of the second tab of the window"""

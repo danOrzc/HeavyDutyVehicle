@@ -15,6 +15,7 @@ functions:
 
 from maya import mel
 from maya import cmds
+import os
 import logging
 
 # Creating a logger for debug
@@ -70,46 +71,85 @@ def __makeArmWindow(*args):
     ArmMaker.makeWindow()
 
 def __emptyShelf(shelf):
-    """This function deletes all the buttons inside the shelf"""
+    """This function deletes all the buttons inside the shelf
+    
+        Parameters
+        ----------
+        shelf : str
+            The name of the shelf to empty
+    """
 
+    # Get a list of the buttons that are children of the shelf
     buttonList = cmds.shelfLayout(shelf, query=True, childArray=True)
     
+    # If the list is valis (not empty), delete each button from it
     if buttonList:
         for i in xrange(len(buttonList)):
             cmds.deleteUI(buttonList[i])
 
+        # Empty the list of buttons
         del buttonList[:]
 
 def __populateShelf(shelf):
-    """This function creates the buttons on the shelf"""
+    """This function creates the buttons on the shelf
+    
+        Parameters
+        ----------
+        shelf : str
+            The name of the shelf to add buttons to
+    """
 
+    # Creating a path to our icons folder
+    # __file__ saves the path where the .py file is saved
+    # using split function separates the path in two indexex
+    # [0] is the start of the path and [1] is the last element (e.g. the deepest folder or the name of the file)
+    # In this case, we are eliminating the name of the file
+    iconPath = os.path.split(__file__)[0]
+
+    # Get the top folder by deleting the last part of the path
+    iconPath = os.path.split(iconPath)[0]
+
+    # From that folder, append the icons folder
+    iconPath = os.path.join(iconPath, "icons")
+
+    # Append the name of the icon
+    vehicleIcon = os.path.join(iconPath, "backhoeShelf.png")
 
     # Shelf button for full vehicle rigging
     cmds.shelfButton(annotation='Create Full Vehicle',
-        image='mayaIcon.png',
+        image=vehicleIcon,
         command=__makeAutoriggingWindow,
         parent=shelf 
         )
     
+    # Append the name of the icon
+    wheelIcon = os.path.join(iconPath, "wheelShelf.png")
+
     # Shelf button for wheel rig
     cmds.shelfButton(annotation='Create Wheel Rig',
-        image='mayaIcon.png', 
+        image=wheelIcon, 
         command=__makeWheelWindow,
         style='iconAndTextVertical',
         sic=True,
         parent=shelf 
         )
+
+    # Append the name of the icon
+    treadIcon = os.path.join(iconPath, "treadShelf.png")
     
     # Shelf button for thread creation
     cmds.shelfButton(annotation='Create Thread mesh and rig',
-        image='mayaIcon.png',
+        image=treadIcon,
         command=__makeThreadWindow,
         parent=shelf 
         )
+
+    # Append the name of the icon
+    armIcon = os.path.join(iconPath, "armShelf.png")
     
     # Shelf button for arm rig
     cmds.shelfButton(annotation='Create Arm Rig',
-        image='mayaIcon.png',
+        image=armIcon,
         command=__makeArmWindow,
         parent=shelf 
         )

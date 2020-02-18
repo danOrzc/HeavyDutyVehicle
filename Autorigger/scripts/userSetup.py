@@ -11,9 +11,16 @@ from maya import cmds
 def __start():
     """This function creates the tool's tab and shelf"""
     
+    # Import mainMenuTab module
     import mainMenuTab
+
+    # Use it's function to create a tab
     mainMenuTab.createTab()
+
+    # Import mainMenuShelf module
     import mainMenuShelf
+
+    # Use it's function to create a shelf
     mainMenuShelf.createShelf()
 
 # Call the function once Maya finished loading everything
