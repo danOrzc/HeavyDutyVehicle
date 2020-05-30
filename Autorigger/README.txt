@@ -10,6 +10,12 @@ Option 2.- Copying files
 	Copy icons folder to the same folder where Maya's "scripts" is
 	Copy the contents of the "scripts" folder to Maya's "scripts" directory
 	Open Maya, the tool will be available as a Tab in the top and as a new shelf.
+	
+To delete the tool:
+	Go to Maya's forlder in documents
+	Look for modules folder
+	Delete MightyEagles.mod file
+	You can now safely delete the project folder
 
 
 Heavy duty vehicle Rigging Tool by:
